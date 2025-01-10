@@ -1,3 +1,20 @@
+import subprocess
+import sys
+import os
+
+# Fungsi untuk menginstal dependensi dari requirements.txt jika belum terinstal
+def install_requirements():
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        print("Semua dependensi berhasil diinstal.")
+    except subprocess.CalledProcessError as e:
+        print(f"Terjadi kesalahan saat menginstal dependensi: {e}")
+        sys.exit(1)
+
+# Cek dan install dependensi
+install_requirements()
+
+# Import library yang diperlukan
 import requests as req
 from bs4 import BeautifulSoup as bs
 import csv
@@ -8,7 +25,6 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import streamlit as st
 import gdown
-import os
 import zipfile
 
 # Headers untuk HTTP request
