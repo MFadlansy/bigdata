@@ -7,18 +7,32 @@ import torch.nn.functional as F
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import streamlit as st
+import gdown
+import os
+import zipfile
 
 # Headers untuk HTTP request
 hades = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
 }
 
-# Tentukan path ke folder tempat model disimpan
-model_path = "./indonesian-roberta-base-sentiment-classifier"
+# Unduh model dari Google Drive jika belum ada
+model_url = 'https://drive.google.com/uc?id=1J0DYlDE_7JDZeITOJ_gX7NKF5UfFgDd1'
+model_path = './indonesian-roberta-base-sentiment-classifier'
+
+if not os.path.exists(model_path):
+    os.makedirs(model_path)
+    gdown.download(model_url, output=model_path + '/model.zip', quiet=False)
+
+    # Ekstrak model
+    with zipfile.ZipFile(model_path + '/model.zip', 'r') as zip_ref:
+        zip_ref.extractall(model_path)
+    os.remove(model_path + '/model.zip')  # Hapus file zip setelah diekstrak
 
 # Memuat tokenizer dan model dari folder lokal
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSequenceClassification.from_pretrained(model_path)
+
 
 # Fungsi untuk scraping dan analisis sentimen
 def scrape_detik(query, hal):
@@ -37,12 +51,14 @@ def scrape_detik(query, hal):
                 if link_tag:
                     link = link_tag['href']
                     date_span = x.find('div', class_='media__date').find('span')
-                    date = date_span.text.replace('WIB', '').replace('detikNews', '').strip() if date_span else 'No Date Found'
+                    date = date_span.text.replace('WIB', '').replace('detikNews',
+                                                                     '').strip() if date_span else 'No Date Found'
                     headline = link_tag.get('dtr-ttl', 'No Headline Found').strip()
 
                     headlines.append(headline)
                     wr.writerow([headline, date, link])
     return headlines
+
 
 def predict_sentiment(headlines):
     sentiments = []
@@ -62,6 +78,7 @@ def predict_sentiment(headlines):
 
     return sentiments, all_important_words
 
+
 def display_wordcloud(all_important_words):
     st.subheader("Wordcloud")
     col1, col2 = st.columns(2)
@@ -71,6 +88,7 @@ def display_wordcloud(all_important_words):
         wc = WordCloud(width=300, height=300, background_color='white').generate(text)
 
         col.image(wc.to_array(), caption=f"Wordcloud - {sentiment.capitalize()}", use_column_width=True)
+
 
 # Streamlit UI
 st.title("Sentiment Analysis Scraping")
