@@ -118,7 +118,7 @@ def display_pie_chart(sentiments):
 # Streamlit UI
 st.title("Sentiment Analysis Scraping")
 
-query = st.text_input("Masukkan Query", "")
+query = st.text_input("Masukkan Kalimat", "")
 hal = st.number_input("Jumlah Halaman", min_value=1, step=1, value=1)
 
 if st.button("Mulai Scraping"):
