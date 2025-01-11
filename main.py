@@ -24,29 +24,15 @@ import torch.nn.functional as F
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import streamlit as st
-import gdown
-import zipfile
 
 # Headers untuk HTTP request
 hades = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
 }
 
-model_url = 'https://drive.google.com/uc?id=1J0DYlDE_7JDZeITOJ_gX7NKF5UfFgDd1'
-model_path = './indonesian-roberta-base-sentiment-classifier'
-
-if not os.path.exists(model_path):
-    os.makedirs(model_path)
-    gdown.download(model_url, output=model_path + '/model.zip', quiet=False)
-
-    # Ekstrak model
-    with zipfile.ZipFile(model_path + '/model.zip', 'r') as zip_ref:
-        zip_ref.extractall(model_path)
-    os.remove(model_path + '/model.zip')  # Hapus file zip setelah diekstrak
-
-# Memuat tokenizer dan model dari folder lokal
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSequenceClassification.from_pretrained(model_path)
+# Memuat tokenizer dan model dari Hugging Face
+tokenizer = AutoTokenizer.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
+model = AutoModelForSequenceClassification.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
 
 
 # Fungsi untuk scraping dan analisis sentimen
