@@ -95,7 +95,8 @@ def display_wordcloud(all_important_words):
         text = ' '.join(all_important_words[sentiment])
         wc = WordCloud(width=300, height=300, background_color='white').generate(text)
 
-        col.image(wc.to_array(), caption=f"Wordcloud - {sentiment.capitalize()}", use_column_width=True)
+        col.image(wc.to_array(), caption=f"Wordcloud - {sentiment.capitalize()}", use_container_width=True)
+
 
 
 # Streamlit UI
