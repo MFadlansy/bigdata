@@ -111,9 +111,11 @@ def display_pie_chart(sentiments):
     # Menentukan warna untuk sentimen positif dan negatif
     color_map = {'Positif': 'green', 'Negatif': 'red'}
 
-    # Membuat pie chart dengan warna yang sesuai
-    fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen',
-                 color='Sentimen', color_discrete_map=color_map)
+    # Membuat pie chart
+    fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen')
+
+    # Menyesuaikan warna dengan menggunakan update_traces
+    fig.update_traces(marker=dict(colors=[color_map.get(sentiment, 'gray') for sentiment in sentiment_counts['Sentimen']]))
 
     # Menampilkan pie chart
     st.plotly_chart(fig)
