@@ -24,6 +24,8 @@ import torch.nn.functional as F
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
 # Headers untuk HTTP request
 hades = {
@@ -33,7 +35,6 @@ hades = {
 # Load tokenizer dan model dari Hugging Face
 tokenizer = AutoTokenizer.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
 model = AutoModelForSequenceClassification.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
-
 
 # Fungsi untuk scraping dan analisis sentimen
 def scrape_detik(query, hal):
@@ -63,16 +64,15 @@ def scrape_detik(query, hal):
                                                                      '').strip() if date_span else 'No Date Found'
                     headline = link_tag.get('dtr-ttl', 'No Headline Found').strip()
 
-                    headlines.append(headline)
+                    headlines.append([headline, date, link])
                     wr.writerow([headline, date, link])
     return headlines
-
 
 def predict_sentiment(headlines):
     sentiments = []
     all_important_words = {'positif': [], 'negatif': []}
 
-    for headline in headlines:
+    for headline, _, _ in headlines:
         inputs = tokenizer(headline, return_tensors="pt", truncation=True, padding=True, max_length=512)
         logits = model(**inputs).logits
         probabilities = F.softmax(logits, dim=1)
@@ -86,7 +86,6 @@ def predict_sentiment(headlines):
 
     return sentiments, all_important_words
 
-
 def display_wordcloud(all_important_words):
     st.subheader("Wordcloud")
     col1, col2 = st.columns(2)
@@ -97,7 +96,19 @@ def display_wordcloud(all_important_words):
 
         col.image(wc.to_array(), caption=f"Wordcloud - {sentiment.capitalize()}", use_container_width=True)
 
+# Fungsi untuk menyimpan hasil ke file CSV
+def save_to_csv(data, filename):
+    df = pd.DataFrame(data, columns=['Headline', 'Tanggal', 'Link', 'Sentimen'])
+    df.to_csv(filename, index=False, encoding='utf-8')
+    st.success(f"Hasil telah disimpan ke {filename}")
 
+# Fungsi untuk menampilkan pie chart
+def display_pie_chart(sentiments):
+    sentiment_counts = pd.DataFrame({'Sentimen': sentiments}).value_counts().reset_index()
+    sentiment_counts.columns = ['Sentimen', 'Jumlah']
+
+    fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen')
+    st.plotly_chart(fig)
 
 # Streamlit UI
 st.title("Sentiment Analysis Scraping")
@@ -118,10 +129,17 @@ if st.button("Mulai Scraping"):
 
         # Tampilkan hasil artikel
         st.subheader("Artikel Positif")
-        st.write([headline for headline, sentiment in zip(headlines, sentiments) if sentiment == 'positif'])
+        st.write([headline[0] for headline, sentiment in zip(headlines, sentiments) if sentiment == 'positif'])
 
         st.subheader("Artikel Negatif")
-        st.write([headline for headline, sentiment in zip(headlines, sentiments) if sentiment == 'negatif'])
+        st.write([headline[0] for headline, sentiment in zip(headlines, sentiments) if sentiment == 'negatif'])
 
         # Tampilkan WordCloud
         display_wordcloud(all_important_words)
+
+        # Tampilkan Pie Chart
+        display_pie_chart(sentiments)
+
+        # Simpan ke file CSV
+        if st.button("Simpan Hasil ke CSV"):
+            save_to_csv([(headline[0], headline[1], headline[2], sentiment) for headline, sentiment in zip(headlines, sentiments)], 'hasil_scraping.csv')
