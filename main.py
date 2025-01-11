@@ -104,15 +104,18 @@ def save_to_csv(data, filename):
 
 # Fungsi untuk menampilkan pie chart
 def display_pie_chart(sentiments):
+    # Memastikan sentimen memiliki nilai 'Positif' dan 'Negatif'
     sentiment_counts = pd.DataFrame({'Sentimen': sentiments}).value_counts().reset_index()
     sentiment_counts.columns = ['Sentimen', 'Jumlah']
 
     # Menentukan warna untuk sentimen positif dan negatif
     color_map = {'Positif': 'green', 'Negatif': 'red'}
 
+    # Membuat pie chart dengan warna yang sesuai
     fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen',
                  color='Sentimen', color_discrete_map=color_map)
 
+    # Menampilkan pie chart
     st.plotly_chart(fig)
 
 # Streamlit UI
