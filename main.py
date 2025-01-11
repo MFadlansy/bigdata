@@ -107,7 +107,12 @@ def display_pie_chart(sentiments):
     sentiment_counts = pd.DataFrame({'Sentimen': sentiments}).value_counts().reset_index()
     sentiment_counts.columns = ['Sentimen', 'Jumlah']
 
-    fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen')
+    # Menentukan warna untuk sentimen positif dan negatif
+    color_map = {'Positif': 'green', 'Negatif': 'red'}
+
+    fig = px.pie(sentiment_counts, names='Sentimen', values='Jumlah', title='Distribusi Sentimen',
+                 color='Sentimen', color_discrete_map=color_map)
+
     st.plotly_chart(fig)
 
 # Streamlit UI
