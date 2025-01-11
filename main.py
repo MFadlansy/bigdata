@@ -30,7 +30,7 @@ hades = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
 }
 
-# Memuat tokenizer dan model dari Hugging Face
+# Load tokenizer dan model dari Hugging Face
 tokenizer = AutoTokenizer.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
 model = AutoModelForSequenceClassification.from_pretrained("w11wo/indonesian-roberta-base-sentiment-classifier")
 
@@ -43,10 +43,17 @@ def scrape_detik(query, hal):
         for page in range(1, hal + 1):
             url = f'https://www.detik.com/search/searchnews?query={query}&page={page}&result_type=latest'
             ge = req.get(url, headers=hades).text
-            sop = bs(ge, 'lxml')
-            li = sop.find('div', class_='list-content')
-            lin = li.find_all('article')
+            try:
+                sop = bs(ge, 'lxml')  # Gunakan 'html.parser' jika 'lxml' tidak tersedia
+            except Exception as e:
+                print(f"Error saat parsing HTML: {e}")
+                sop = bs(ge, 'html.parser')
 
+            li = sop.find('div', class_='list-content')
+            if not li:
+                continue
+
+            lin = li.find_all('article')
             for x in lin:
                 link_tag = x.find('a')
                 if link_tag:
